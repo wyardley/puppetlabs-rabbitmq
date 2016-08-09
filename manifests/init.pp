@@ -28,7 +28,7 @@ class rabbitmq(
   $package_source             = undef,
   $repos_ensure               = $rabbitmq::params::repos_ensure,
   $manage_repos               = $rabbitmq::params::manage_repos,
-  $plugin_dir                 = $rabbitmq::params::plugin_dir,
+  $plugin_dir                 = undef,
   $rabbitmq_user              = $rabbitmq::params::rabbitmq_user,
   $rabbitmq_group             = $rabbitmq::params::rabbitmq_group,
   $rabbitmq_home              = $rabbitmq::params::rabbitmq_home,
@@ -65,7 +65,7 @@ class rabbitmq(
   $ldap_config_variables      = $rabbitmq::params::ldap_config_variables,
   $stomp_port                 = $rabbitmq::params::stomp_port,
   $stomp_ssl_only             = $rabbitmq::params::stomp_ssl_only,
-  $version                    = $rabbitmq::params::version,
+  $version                    = undef,
   $wipe_db_on_cookie_change   = $rabbitmq::params::wipe_db_on_cookie_change,
   $cluster_partition_handling = $rabbitmq::params::cluster_partition_handling,
   $file_limit                 = $rabbitmq::params::file_limit,
@@ -87,7 +87,6 @@ class rabbitmq(
   validate_string($package_name)
   validate_string($package_provider)
   validate_bool($repos_ensure)
-  validate_re($version, '^\d+\.\d+\.\d+(-\d+)*$') # Allow 3 digits and optional -n postfix.
   # Validate config parameters.
   validate_re($cluster_node_type, '^(ram|disc|disk)$') # Both disc and disk are valid http://www.rabbitmq.com/clustering.html
   validate_array($cluster_nodes)
@@ -108,7 +107,6 @@ class rabbitmq(
     validate_re($management_port, '\d+')
   }
   validate_string($node_ip_address)
-  validate_absolute_path($plugin_dir)
   if ! is_integer($port) {
     validate_re($port, ['\d+','UNSET'])
   }
@@ -194,53 +192,34 @@ class rabbitmq(
     }
   }
 
-  # This needs to happen here instead of params.pp because
-  # $package_source needs to override the constructed value in params.pp
-  if $package_source { # $package_source was specified by user so use that one
-    $real_package_source = $package_source
-  # NOTE(bogdando) do not enforce the source value for yum provider #MODULES-1631
-  } elsif $package_provider != 'yum' {
-    # package_source was not specified, so construct it, unless the provider is 'yum'
-    case $::osfamily {
-      'RedHat', 'SUSE': {
-        $base_version   = regsubst($version,'^(.*)-\d$','\1')
-        $real_package_source = "http://www.rabbitmq.com/releases/rabbitmq-server/v${base_version}/rabbitmq-server-${version}.noarch.rpm"
-      }
-      'OpenBSD': {
-        # We just use the default OpenBSD package from a mirror
-        $real_package_source = undef
-      }
-      default: { # Archlinux and Debian
-        $real_package_source = undef
-      }
-    }
-  } else { # for yum provider, use the source as is
-    $real_package_source = $package_source
+  if $package_source != undef {
+    warning('$package_source is now deprecated. Please use yum installation or handle outside of this module.')
   }
 
   if $manage_repos != undef {
-    warning('$manage_repos is now deprecated. Please use $repos_ensure instead')
+    warning('$manage_repos is now deprecated. Please use $repos_ensure instead.')
   }
 
-  if $manage_repos != false {
+  if $version != undef {
+    warning('$version is now deprecated, and will not have any effect.')
+  }
+
+  if $repos_ensure {
     case $::osfamily {
-      'RedHat', 'SUSE': {
-          include '::rabbitmq::repo::rhel'
-          $package_require = undef
+      'RedHat': {
+        class { '::rabbitmq::repo::rhel':
+          key_source  => $package_gpg_key,
+        }
       }
       'Debian': {
         class { '::rabbitmq::repo::apt' :
           key_source  => $package_gpg_key,
           key_content => $key_content,
         }
-        $package_require = Class['apt::update']
       }
       default: {
-        $package_require = undef
       }
     }
-  } else {
-    $package_require = undef
   }
 
   include '::rabbitmq::install'
