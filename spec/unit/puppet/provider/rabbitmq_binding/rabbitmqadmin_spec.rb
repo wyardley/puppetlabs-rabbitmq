@@ -91,6 +91,8 @@ EOT
     end
 
     it "matches" do
+  Puppet::Util::Log.level = :debug
+  Puppet::Util::Log.newdestination(:console)
       # Test resource to match against
       @resource = Puppet::Type::Rabbitmq_binding.new(
         {
