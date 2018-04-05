@@ -20,6 +20,7 @@ Puppet::Type.type(:rabbitmq_user).provide(
     end
 
     user_list.split(%r{\n}).map do |line|
+      next if line =~ %r{^warning: the VM is running with}
       raise Puppet::Error, "Cannot parse invalid user line: #{line}" unless line =~ %r{^(\S+)\s+\[(.*?)\]$}
       user = Regexp.last_match(1)
       tags = Regexp.last_match(2).split(%r{,\s*})

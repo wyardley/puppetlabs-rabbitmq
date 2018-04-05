@@ -173,4 +173,19 @@ EOT
       provider.flush
     end
   end
+
+  describe 'ignores error' do
+    before do
+      provider.class.stubs(:rabbitmqctl).with('-q', 'list_users').returns <<-EOT
+warning: the VM is running with native name encoding of latin1 which may cause Elixir to malfunction as it expects utf8. Please ensure your locale is set to UTF-8 (which can be verified by running "locale" in your shell)
+guest [administrator]
+EOT
+    end
+
+    it { expect(provider.class.instances.size).to eq(1) }
+    it 'returns an array of users' do
+      users = provider.class.instances.map(&:name)
+      expect(users).to match_array(%w[rmq_x rmq_y rmq_z])
+    end
+  end
 end
