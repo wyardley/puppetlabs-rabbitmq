@@ -90,9 +90,9 @@ class rabbitmq::config {
   }
 
   if ($service_restart) {
-    $service_to_restart = Class['rabbitmq::service']
+    $config_notify = Class['rabbitmq::service']
   } else {
-    $service_to_rstart = undef
+    $config_notify = undef
   }
 
   # This seems like a sensible default, and I think we have to assign it here
@@ -165,7 +165,7 @@ class rabbitmq::config {
     owner   => '0',
     group   => $rabbitmq_group,
     mode    => '0640',
-    notify  => $service_to_restart,
+    notify  => $config_notify,
   }
 
   file { 'rabbitmq-env.config':
@@ -175,7 +175,7 @@ class rabbitmq::config {
     owner   => '0',
     group   => $rabbitmq_group,
     mode    => '0640',
-    notify  => $service_to_restart,
+    notify  => $config_notify,
   }
 
   file { 'rabbitmq-inetrc':
@@ -185,7 +185,7 @@ class rabbitmq::config {
     owner   => '0',
     group   => $rabbitmq_group,
     mode    => '0640',
-    notify  => $service_to_restart,
+    notify  => $config_notify,
   }
 
   if $admin_enable {
@@ -208,7 +208,7 @@ class rabbitmq::config {
         mode    => '0644',
         owner   => '0',
         group   => '0',
-        notify  => $service_to_restart,
+        notify  => $config_notify,
       }
     }
     'RedHat': {
@@ -217,7 +217,7 @@ class rabbitmq::config {
         owner   => '0',
         group   => '0',
         mode    => '0644',
-        notify  => $service_to_restart,
+        notify  => $config_notify,
       }
     }
     default: { }
@@ -242,7 +242,7 @@ class rabbitmq::config {
       rabbitmq_home  => $rabbitmq_home,
       service_name   => $service_name,
       before         => File['rabbitmq.config'],
-      notify         => $service_to_restart,
+      notify         => $config_notify,
     }
   }
 }
