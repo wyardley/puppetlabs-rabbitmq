@@ -90,7 +90,7 @@ class rabbitmq::config {
   }
 
   if ($service_restart) {
-    $service_to_restart = Class['rabbitmq::service'],
+    $service_to_restart = Class['rabbitmq::service']
   } else {
     $service_to_rstart = undef
   }
