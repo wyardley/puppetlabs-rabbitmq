@@ -188,6 +188,7 @@
 # @param $rabbitmqadmin_package OS dependent. default defined in param.pp. If undef: install rabbitmqadmin via archive, otherwise via package
 # @param $archive_options. default defined in param.pp.  Extra options to Archive resource to download rabbitmqadmin file
 # @param $loopback_users. default defined in param.pp. This option configures a list of users to allow access via the loopback interfaces
+# @param $service_restart. default defined in param.pp. This option will prevent config changes from restarting rabbitmq
 class rabbitmq(
   Boolean $admin_enable                                                                            = $rabbitmq::params::admin_enable,
   Enum['ram', 'disk', 'disc'] $cluster_node_type                                                   = $rabbitmq::params::cluster_node_type,
@@ -281,6 +282,7 @@ class rabbitmq(
   Optional[String] $rabbitmqadmin_package                                                          = $rabbitmq::params::rabbitmqadmin_package,
   Array $archive_options                                                                           = $rabbitmq::params::archive_options,
   Array $loopback_users                                                                            = $rabbitmq::params::loopback_users,
+  Boolean $service_restart                                                                         = $rabbitmq::params::service_restart,
 ) inherits rabbitmq::params {
 
   if $ssl_only and ! $ssl {
