@@ -314,6 +314,11 @@ class rabbitmq(
     }
   }
 
+  if ($service_restart) {
+    $config_notify = Class['rabbitmq::service']
+  } else {
+    $config_notify = undef
+  }
   contain rabbitmq::install
   contain rabbitmq::config
   contain rabbitmq::service
@@ -364,7 +369,7 @@ class rabbitmq(
 
   Class['rabbitmq::install']
   -> Class['rabbitmq::config']
-  ~> Class['rabbitmq::service']
+  ~> $config_notify
   -> Class['rabbitmq::management']
 
   # Make sure the various providers have their requirements in place.

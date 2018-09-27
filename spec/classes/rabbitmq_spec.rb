@@ -1455,6 +1455,14 @@ describe 'rabbitmq' do
 
         it { is_expected.not_to contain_service('rabbitmq-server') }
       end
+
+      describe 'service with service_restart equal to false' do
+        let :params do
+          { service_restart: false }
+        end
+
+        it { is_expected.not_to contain_file('rabbitmq.config').that_notifies("Class[rabbitmq::service]") }
+      end
     end
   end
 end
