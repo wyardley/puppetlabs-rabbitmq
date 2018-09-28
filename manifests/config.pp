@@ -78,7 +78,6 @@ class rabbitmq::config {
   $inetrc_config_path                  = $rabbitmq::inetrc_config_path
   $ssl_erl_dist                        = $rabbitmq::ssl_erl_dist
   $loopback_users                      = $rabbitmq::loopback_users
-  $service_restart                     = $rabbitmq::service_restart
 
   if $ssl_only {
     $default_ssl_env_variables = {}
@@ -87,12 +86,6 @@ class rabbitmq::config {
       'NODE_PORT'        => $port,
       'NODE_IP_ADDRESS'  => $node_ip_address,
     }
-  }
-
-  if ($service_restart) {
-    $config_notify = Class['rabbitmq::service']
-  } else {
-    $config_notify = undef
   }
 
   # This seems like a sensible default, and I think we have to assign it here
@@ -165,7 +158,6 @@ class rabbitmq::config {
     owner   => '0',
     group   => $rabbitmq_group,
     mode    => '0640',
-    notify  => $config_notify,
   }
 
   file { 'rabbitmq-env.config':
@@ -175,7 +167,6 @@ class rabbitmq::config {
     owner   => '0',
     group   => $rabbitmq_group,
     mode    => '0640',
-    notify  => $config_notify,
   }
 
   file { 'rabbitmq-inetrc':
@@ -185,7 +176,6 @@ class rabbitmq::config {
     owner   => '0',
     group   => $rabbitmq_group,
     mode    => '0640',
-    notify  => $config_notify,
   }
 
   if $admin_enable {
@@ -208,7 +198,6 @@ class rabbitmq::config {
         mode    => '0644',
         owner   => '0',
         group   => '0',
-        notify  => $config_notify,
       }
     }
     'RedHat': {
@@ -217,7 +206,6 @@ class rabbitmq::config {
         owner   => '0',
         group   => '0',
         mode    => '0644',
-        notify  => $config_notify,
       }
     }
     default: { }
@@ -242,7 +230,6 @@ class rabbitmq::config {
       rabbitmq_home  => $rabbitmq_home,
       service_name   => $service_name,
       before         => File['rabbitmq.config'],
-      notify         => $config_notify,
     }
   }
 }

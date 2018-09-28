@@ -146,6 +146,7 @@
 # @param service_ensure The state of the service.
 # @param service_manage Determines if the service is managed.
 # @param service_name The name of the service to manage.
+# @param $service_restart. Default defined in param.pp. This option will prevent config changes from restarting rabbitmq
 # @param ssl Configures the service for using SSL.
 #  port => UNSET
 # @param ssl_cacert CA cert path to use for SSL.
@@ -188,7 +189,6 @@
 # @param $rabbitmqadmin_package OS dependent. default defined in param.pp. If undef: install rabbitmqadmin via archive, otherwise via package
 # @param $archive_options. default defined in param.pp.  Extra options to Archive resource to download rabbitmqadmin file
 # @param $loopback_users. default defined in param.pp. This option configures a list of users to allow access via the loopback interfaces
-# @param $service_restart. default defined in param.pp. This option will prevent config changes from restarting rabbitmq
 class rabbitmq(
   Boolean $admin_enable                                                                            = $rabbitmq::params::admin_enable,
   Enum['ram', 'disk', 'disc'] $cluster_node_type                                                   = $rabbitmq::params::cluster_node_type,
@@ -314,11 +314,6 @@ class rabbitmq(
     }
   }
 
-  if ($service_restart) {
-    $config_notify = Class['rabbitmq::service']
-  } else {
-    $config_notify = undef
-  }
   contain rabbitmq::install
   contain rabbitmq::config
   contain rabbitmq::service
@@ -367,9 +362,13 @@ class rabbitmq(
     }
   }
 
+  if ($service_restart) {
+    Class['rabbitmq::config'] ~> Class['rabbitmq::service']
+  }
+
   Class['rabbitmq::install']
   -> Class['rabbitmq::config']
-  ~> $config_notify
+  -> Class['rabbitmq::service']
   -> Class['rabbitmq::management']
 
   # Make sure the various providers have their requirements in place.
